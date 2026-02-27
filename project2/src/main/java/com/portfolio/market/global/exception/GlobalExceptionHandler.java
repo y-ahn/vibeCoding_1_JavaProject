@@ -1,0 +1,40 @@
+package com.portfolio.market.global.exception;
+
+import com.portfolio.market.global.response.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import java.util.stream.Collectors;
+
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ApiResponse<?>> handleCustomException(CustomException e) {
+        return ResponseEntity
+                .status(e.getErrorCode().getStatus())
+                .body(ApiResponse.error(e.getErrorCode()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleValidationException(
+            MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+        log.warn("Validation error: {}", message);
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.INVALID_INPUT));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
+        log.error("Unexpected error", e);
+        return ResponseEntity.internalServerError()
+                .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR));
+    }
+}

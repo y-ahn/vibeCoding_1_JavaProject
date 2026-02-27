@@ -1,0 +1,9 @@
+build/
+.gradle/
+*.class
+.idea/
+*.iml
+.env
+application-prod.yml
+.DS_Store
+src/main/generated/
